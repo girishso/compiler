@@ -147,17 +147,17 @@ moduleToDoc root (Module _ absolutePath _ source err) =
 
 
 reportToDoc :: FilePath -> Report.Report -> D.Doc
-reportToDoc relativePath (Report.Report title _ _ message) =
+reportToDoc relativePath (Report.Report title region _ message) =
   D.vcat
-    [ toMessageBar title relativePath
+    [ toMessageBar title region relativePath
     , ""
     , message
     , ""
     ]
 
 
-toMessageBar :: String -> FilePath -> D.Doc
-toMessageBar title filePath =
+toMessageBar :: String -> A.Region -> FilePath -> D.Doc
+toMessageBar title (A.Region (A.Position startLine _) (A.Position endLine _)) filePath =
   let
     usedSpace =
       4 + length title + 1 + length filePath
@@ -165,7 +165,7 @@ toMessageBar title filePath =
     D.dullcyan $ D.fromChars $
       "-- " ++ title
       ++ " " ++ replicate (max 1 (80 - usedSpace)) '-'
-      ++ " " ++ filePath
+      ++ " " ++ filePath ++ ":" ++ (show startLine)
 
 
 
