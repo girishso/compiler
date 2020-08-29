@@ -30,7 +30,7 @@ source-repository head
 
 Flag dev {
   Description: Turn off optimization and make warnings errors
-  Default: True
+  Default: False
 }
 
 
