@@ -33,7 +33,7 @@ import qualified Data.ByteString.Builder as B
 import qualified Data.NonEmptyList as NE
 import qualified System.Exit as Exit
 import qualified System.Info as Info
-import System.IO (hFlush, hPutStr, hPutStrLn, stderr, stdout)
+import System.IO (IOMode (WriteMode), hClose, hFlush, hPutStr, hPutStrLn, openBinaryFile, stderr, stdout, withBinaryFile)
 
 import qualified Elm.ModuleName as ModuleName
 import qualified Elm.Package as Pkg
@@ -91,7 +91,10 @@ attemptWithStyle style toReport work =
   do  result <- work `catch` reportExceptionsNicely
       case result of
         Right a ->
-          return a
+          do  handle <- openBinaryFile "report.json" WriteMode
+              hPutStr handle ""
+              hClose handle
+              return a
 
         Left x ->
           case style of
@@ -99,7 +102,10 @@ attemptWithStyle style toReport work =
               do  Exit.exitFailure
 
             Json ->
-              do  B.hPutBuilder stderr (Encode.encodeUgly (Exit.toJson (toReport x)))
+              do  Exit.toStderr (toReport x)
+                  handle <- openBinaryFile "report.json" WriteMode
+                  B.hPutBuilder handle (Encode.encode (Exit.toJson (toReport x)))
+                  hClose handle
                   Exit.exitFailure
 
             Terminal mvar ->
